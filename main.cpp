@@ -11,6 +11,7 @@ bool foundBest =false;
 int best_score = 0;
 string best_line;
 vector<pair<int,int>> path;
+vector<short> lined_seq;
 
 void get_data(){
     cout <<"Matrix:\n";
@@ -45,13 +46,38 @@ void get_possible_sequences(int& index_x, int index_y, vector<pair<int,int>> thi
     if (foundBest) return;
     if (!thisStr.empty() && thisStr.length()/2==buffer_size) {
         int isSeq = 0;
+        vector<short> linedSeq;
         for (const auto& seq: sequences){
-            if (thisStr.find(seq)!=string::npos) isSeq++;
+            if (thisStr.find(seq)!=string::npos) {
+                linedSeq.push_back(1);
+                isSeq++;
+            }
+            else linedSeq.push_back(0);
         }
         if (isSeq>best_score) {
             best_score=isSeq;
             path = thisPath;
             best_line=thisStr;
+            lined_seq=linedSeq;
+        }
+        if (isSeq==best_score){
+            int thisScore=0;
+            int score=1;
+            for (auto s: linedSeq) {
+                if (s) thisScore+=score;
+                score++;
+            }
+            int outScore=0;
+            score=1;
+            for (auto s: lined_seq) {
+                if (s) outScore+=score;
+                score++;
+            }
+            if (thisScore>outScore){
+                path=thisPath;
+                best_line=thisStr;
+                lined_seq=linedSeq;
+            }
         }
         if (isSeq==sequences.size()){
             foundBest=true;
@@ -90,7 +116,9 @@ int main() {
     auto start = clock();
     get_possible_sequences_start();
     cout << "Done\nElapsed time = " << (clock()-start) <<" clock ticks" << endl;
-    cout << "Lined up sequences: " << best_score << endl << "Line: ";
+    cout << "Lined up sequences: ";
+    for (int i=0;i<lined_seq.size();i++) if (lined_seq[i]) cout << i+1 << " ";
+    cout<< endl << "Line: ";
     for (int i=0;i<best_line.size()/2;i++) cout << best_line[i*2] << best_line[i*2+1] << " ";
     cout << endl << "path:";
     for (auto c: path) cout << "{ x:" << c.first << " y:" << c.second <<" } ";
