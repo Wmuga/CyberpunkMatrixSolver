@@ -105,7 +105,10 @@ int main() {
     get_possible_sequences_start();
     cout << "Done\nElapsed time = " << (clock()-start) <<" clock ticks" << endl;
     if (foundBest){
-        cout << (*(seq_lines_arranged[sequences.size()].begin())).second;
+        cout <<"Best Line: " << (*(seq_lines_arranged[sequences.size()].begin())).second;
+        cout <<"\nPath: ";
+        for (auto coord: (*(seq_path_arranged[sequences.size()].begin())).second) cout << "( x:" << coord.first << " y:" << coord.second << " ), ";
+        cout << endl;
     }
     else{
         auto path = seq_path_arranged.begin();
