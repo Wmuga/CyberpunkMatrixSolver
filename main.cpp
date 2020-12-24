@@ -2,16 +2,19 @@
 #include <vector>
 #include <set>
 #include <ctime>
+#include <map>
 using namespace std;
 
 string* matrix;
 int matrix_size, buffer_size;
 vector<string> sequences;
 bool foundBest =false;
-int best_score = 0;
-string best_line;
-vector<pair<int,int>> path;
-vector<short> lined_seq;
+
+using path_array  = vector<pair<int,int>>;
+using seq_nums = vector<short>;
+
+map<short,map<seq_nums,path_array>> seq_path_arranged;
+map<short,map<seq_nums,string>> seq_lines_arranged;
 
 void get_data(){
     cout <<"Matrix:\n";
@@ -45,43 +48,25 @@ bool ContainsCoords(const vector<pair<int,int>>& thisPath,const pair<int,int>& c
 void get_possible_sequences(int& index_x, int index_y, vector<pair<int,int>> thisPath, string thisStr="", bool xy=true){
     if (foundBest) return;
     if (!thisStr.empty() && thisStr.length()/2==buffer_size) {
-        int isSeq = 0;
+        short isSeq = 0,seq_num=0;
         vector<short> linedSeq;
         linedSeq.reserve(sequences.size());
         for (const auto& seq: sequences){
             if (thisStr.find(seq)!=string::npos) {
-                linedSeq.emplace_back(1);
+                linedSeq.emplace_back(seq_num);
                 isSeq++;
             }
-            else linedSeq.emplace_back(0);
+            seq_num++;
         }
-        if (isSeq>best_score) {
-            best_score=isSeq;
-            path = thisPath;
-            best_line=thisStr;
-            lined_seq=linedSeq;
-        }
-        if (isSeq==best_score){
-            int thisScore=0;
-            int score=1;
-            for (auto s: linedSeq) {
-                if (s) thisScore+=score;
-                score++;
+        if (isSeq) {
+            if (seq_path_arranged[isSeq].count(linedSeq)==0) {
+                seq_path_arranged[isSeq][linedSeq] = thisPath;
+                seq_lines_arranged[isSeq][linedSeq] = thisStr;
             }
-            int outScore=0;
-            score=1;
-            for (auto s: lined_seq) {
-                if (s) outScore+=score;
-                score++;
+
+            if (isSeq == sequences.size()) {
+                foundBest = true;
             }
-            if (thisScore>outScore){
-                path=thisPath;
-                best_line=thisStr;
-                lined_seq=linedSeq;
-            }
-        }
-        if (isSeq==sequences.size()){
-            foundBest=true;
         }
     }
     else{
@@ -119,12 +104,29 @@ int main() {
     auto start = clock();
     get_possible_sequences_start();
     cout << "Done\nElapsed time = " << (clock()-start) <<" clock ticks" << endl;
-    cout << "Lined up sequences: ";
-    for (int i=0;i<lined_seq.size();i++) if (lined_seq[i]) cout << i+1 << " ";
-    cout<< endl << "Line: ";
-    for (int i=0;i<best_line.size()/2;i++) cout << best_line[i*2] << best_line[i*2+1] << " ";
-    cout << endl << "path:";
-    for (auto c: path) cout << "{ x:" << c.first << " y:" << c.second <<" } ";
+    if (foundBest){
+        cout << (*(seq_lines_arranged[sequences.size()].begin())).second;
+    }
+    else{
+        auto path = seq_path_arranged.begin();
+        auto line = seq_lines_arranged.begin();
+        for (int score=0; score < seq_path_arranged.size(); score++){
+            cout << "============ AT " << path->first << " SEQUENCES ============" << endl;
+            auto path_with_seq =path->second.begin();
+            auto line_with_seq =line->second.begin();
+            for (int lined_seq=0;lined_seq<path->second.size();lined_seq++){
+                cout << "Lined sequences: ";
+                for (auto seq_num:line_with_seq->first) cout << seq_num+1 << " ";
+                cout << endl << "Line: " << line_with_seq->second << endl << "Path: ";
+                for (auto coord:path_with_seq->second) cout << "( x:" << coord.first << " y:" << coord.second << " ), ";
+                cout << endl << "----------------------------\n";
+                path_with_seq++;
+                line_with_seq++;
+            }
+            path++;
+            line++;
+        }
+    }
     delete[]matrix;
     return 0;
 }
