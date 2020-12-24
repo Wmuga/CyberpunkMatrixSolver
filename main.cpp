@@ -41,18 +41,19 @@ bool ContainsCoords(const vector<pair<int,int>>& thisPath,const pair<int,int>& c
     return false;
 }
 
-//55 55 55 bd 7a 55 e9 7a
+
 void get_possible_sequences(int& index_x, int index_y, vector<pair<int,int>> thisPath, string thisStr="", bool xy=true){
     if (foundBest) return;
     if (!thisStr.empty() && thisStr.length()/2==buffer_size) {
         int isSeq = 0;
         vector<short> linedSeq;
+        linedSeq.reserve(sequences.size());
         for (const auto& seq: sequences){
             if (thisStr.find(seq)!=string::npos) {
-                linedSeq.push_back(1);
+                linedSeq.emplace_back(1);
                 isSeq++;
             }
-            else linedSeq.push_back(0);
+            else linedSeq.emplace_back(0);
         }
         if (isSeq>best_score) {
             best_score=isSeq;
@@ -95,7 +96,9 @@ void get_possible_sequences(int& index_x, int index_y, vector<pair<int,int>> thi
 
 void set_search(int start_index,int end_index){
     for (int i=start_index;i<=end_index;i++){
-        get_possible_sequences(i,0,vector<pair<int,int>>());
+        vector<pair<int,int>> thisPath;
+        thisPath.reserve(matrix_size);
+        get_possible_sequences(i,0,thisPath);
     }
 }
 
