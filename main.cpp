@@ -3,6 +3,7 @@
 #include <set>
 #include <ctime>
 #include <map>
+#include <thread>
 using namespace std;
 
 string* matrix;
@@ -47,6 +48,7 @@ bool ContainsCoords(const vector<pair<int,int>>& thisPath,const pair<int,int>& c
 
 void get_possible_sequences(int& index_x, int index_y, vector<pair<int,int>> thisPath, string thisStr="", bool xy=true){
     if (foundBest) return;
+    if (thisStr.empty()) thisStr.reserve(buffer_size*2);
     if (!thisStr.empty() && thisStr.length()/2==buffer_size) {
         short isSeq = 0,seq_num=0;
         vector<short> linedSeq;
@@ -88,11 +90,12 @@ void set_search(int start_index,int end_index){
 }
 
 void get_possible_sequences_start(){
-    set<string> s1,s2,s3;
-    //Огрызок для поиска в нескольких потоках
-    set_search(0,matrix_size/3);
-    set_search(matrix_size/3+1,matrix_size/3*2);
+    //Set as many threads as u wish
+    thread t1(set_search,0,matrix_size/3);
+    thread t2(set_search,matrix_size/3+1,matrix_size/3*2);
     set_search(matrix_size/3*2+1,matrix_size-1);
+    t1.join();
+    t2.join();
 
 }
 
